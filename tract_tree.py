@@ -200,17 +200,18 @@ def untag(tag_str):
 ### Parse Command Line ###
 try:
 	file_name = sys.argv[1]
+	K = int(sys.argv[2])
 	f = open(file_name, 'r')
 except:
-	print "ERROR: could not open file"
+	print "ERROR: parsing command line arguments"
+	print "Usage: >> tract_tree.py [input_file_name] [k]"
+	print "k is the chosen number of expression classes"
+	sys.exit()
 
 ### Parse the Input File ###
 # Every line of the file should be of the format:
 # haplotype \t expression value  
 
-# first_line = f.readline()
-# split_line = first_line.split('\t')
-# this_hap = np.asarray(tractize([int(x) for x in list(split_line[0])]))
 haps = [] # initialize haps, which will store all haplotypes
 exp_vals = [] # initialize exp_vals, which will store paired expression values
 
@@ -218,7 +219,6 @@ exp_vals = [] # initialize exp_vals, which will store paired expression values
 for line in f:
 	split_line = line.split('\t')
 	this_hap = tractize([int(x) for x in list(split_line[0])]) # a list of ints
-	# haps = np.vstack( (haps, np.asarray(this_hap)) )
 	haps.append(this_hap)
 	exp_vals.append(float(split_line[1]))
 
@@ -300,23 +300,42 @@ def collect_tags(root):
 		# Search each child node
 		search_node(edge.end_node)
 
-
 	# Output the populated data structures
 	return (shared_tracts, tract_map)
-
-
 
 # Run collect_tags on the root of the Tractus tree
 # Ie., perform depth-first traversal of the Tractus tree to 
 # populate shared_tracts and tag_map 
 (shared_tracts, tract_map) = collect_tags(root)
 
-# Calculate the average shared tract length
-num_shared_tracts = len(shared_tracts)
-tract_lens = [x[1] for x in shared_tracts]
-print num_shared_tracts
-print tract_lens
-print float(sum(tract_lens)) / float(num_shared_tracts)
+# Function to calculate the average shared tract length
+def avg_tract_length(shared_tracts):
+	num_shared_tracts = len(shared_tracts)
+	tract_lens = [x[1] for x in shared_tracts]
+	return float(sum(tract_lens)) / float(num_shared_tracts)
+
+# Label each haplotype with one of K expression levels
+# based on paired expression data
+def generate_exp_lvl_vec(exp_vec, K):
+	# Outputs a list of size exp_vec where each value
+	# has been converted to a value in [1,..., K]
+	lvl_size = float(max(exp_vec) - min(exp_vec)) / float(K)
+	min_val = float(min(exp_vec))
+	# Initialize vector of level assignment
+	lvl_vec = [0 for x in range(len(exp_vec))]
+	# Assign each value in exp_vec to a level and store it in lvl_vec
+	for i in range(len(exp_vec)):
+		exp_val = exp_vec[i]
+		for k in range(K):
+			if exp_val <= (min_val + (k+1)*lvl_size):
+				lvl_vec[i] = k #assign level vec
+				break # exit loop
+	return lvl_vec
+
+# Generate the expression level vector
+# E[i] = the expression level of haplotype i
+# Values in E are integers [0,...,K-1]
+E = generate_exp_lvl_vec(exp_vals, K)
 
 
 ### Train using the Voting Theory Method ###
