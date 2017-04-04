@@ -122,9 +122,9 @@ def insert(root, suff, tag_val):
 					return root
 				elif (pref == len(edge.tract)) and (pref < len(suff)):
 					# The suffix is longer than the shared prefix
-					# We take the additional part of the suffix and add a new edge
+					# We take the additional part of the suffix and insert it below
 					root.add_tag_below(tag_val)
-					rest_of_suff = suffix[pref:]
+					rest_of_suff = suff[pref:]
 					edge.end_node = insert(edge.end_node, rest_of_suff, tag_val)
 					return root
 				elif (pref < len(edge.tract)) and (pref == len(suff)):
@@ -148,19 +148,19 @@ def insert(root, suff, tag_val):
 					mid_node.tags_below = root.get_tags_below() 
 					# Construct an edge from root to mid_node
 					root_mid_edge = Edge(root, mid_node, first_part)
+					# Remove the old edge
+					root.edges.pop(root.edges.index(edge)) 
 					root.add_edge(root_mid_edge)
 					# construct a node from mid_node to the end node
 					mid_end_edge = Edge(mid_node, edge.end_node, last_part)
 					mid_node.add_edge(mid_end_edge)
-					# Remove the old edge
-					root.edges.pop(root.edges.index(edge)) 
 					return root
 				else:
 					# True Split: The shared prefix is only part of this edge
 					# First split the edge.tract into its two parts
 					first_part = edge.tract[0:pref]
 					last_part = edge.tract[pref:]
-					rest_of_suff = suffix[pref:]
+					rest_of_suff = suff[pref:]
 					# Construct a new intermediate node
 					mid_node = Node()
 					mid_node.tract_so_far = root.tract_so_far + first_part
@@ -169,12 +169,12 @@ def insert(root, suff, tag_val):
 					mid_node.add_tag_below(tag_val) # include the current tag
 					# Construct an edge from root to mid_node
 					root_mid_edge = Edge(root, mid_node, first_part)
-					root.add_edge(root_mid_edge)
 					# Construct an edge from mid_node to end of this edge node
 					mid_end_edge = Edge(mid_node, edge.end_node, last_part)
 					mid_node.add_edge(mid_end_edge)
 					# Remove the old edge
 					root.edges.pop(root.edges.index(edge)) 
+					root.add_edge(root_mid_edge)
 					# Recursively add the rest of the suffix to mid_node
 					mid_node = insert(mid_node, rest_of_suff, tag_val)
 					return root
@@ -240,7 +240,7 @@ hap_len = len(haps[0])
 # suffix tree construction algorithm.
 
 root = Node() # root of the tractus tree
-for i in range(num_haps):
+for i in [0,1,3]:#range(num_haps):
 	hap = haps[i] # get the i-th haplotype to be added to tree
 	tag_val =  tag(i) # generate a unique tag for the i-th haplotype
 	for j in range(hap_len):
@@ -307,6 +307,8 @@ def collect_tags(root):
 # Ie., perform depth-first traversal of the Tractus tree to 
 # populate shared_tracts and tag_map 
 (shared_tracts, tract_map) = collect_tags(root)
+for tract in shared_tracts:
+	print tract[0]
 
 # Function to calculate the average shared tract length
 def avg_tract_length(shared_tracts):
@@ -338,7 +340,29 @@ def generate_exp_lvl_vec(exp_vec, K):
 E = generate_exp_lvl_vec(exp_vals, K)
 
 
-### Train using the Voting Theory Method ###
+### N-fold Cross Validation Using the Voting Theory Method ###
+# Take out every haplotpye individually and classify it / predict
+# its expression based on the voting theory approach.
+
+# def calculate_confidence(tract, hap_ind, E):
+# 	# Calculates the vote and confidence of this tract
+# 	# for the haplotype specified by hap_ind
+# 	# E[i] is the expression level of haplotype i
+# 	tract_tags = tract[2] # the tags associated with this tract
+# 	tract_tags.remove(hap_ind) # remove the hap we are trying to predict
+
+
+
+# predictions = [0 for x in range(num_haps)]
+# for i in range(num_haps):
+# 	# Form a prediction of the expression level of haplotype "i"
+# 	hap = haps[i]
+# 	score_vector = [0 for k in range(K)] # will store scores for each class
+# 	tract_inds = tract_map[i]
+# 	for ind in tract_inds:
+# 		tract = shared_tracts[ind]
+# 		L = tract[1] # length of the tract
+
 
 
 
