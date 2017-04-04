@@ -184,9 +184,18 @@ def insert(root, suff, tag_val):
 			# No common prefix was found
 			return add_suff_to_root()
 
+# NOTE: always modify 'tag' and 'untag' together to
+# maintain compatibility 
+global tag
+global untag
 def tag(hap_val):
-	# Create a unique tag given a hap_val
+	# Create a unique string tag given a hap_val
 	return "$" + str(hap_val) + "$"
+
+def untag(tag_str):
+	# Create get the integer of a tag string
+	# Essentially avoid the first and last '$' characters
+	return int(tag_str[1:-1])
 
 ### Parse Command Line ###
 try:
@@ -239,8 +248,78 @@ for i in range(num_haps):
 		root = insert(root, suffix, tag_val) # insert suffix into the Tractus tree
 		
 # Print the Tractus tree to stdout 
-print_tractus_tree(root)
+# print_tractus_tree(root)
 
+
+
+### Collect Tag Sets from Tractus Tree ###
+# Use depth-first traversal of tree to collect the sets of tags associated
+# at each node. These tag sets will be used to train the two different models. 
+
+# shared_tracts is a list of tuples, where each tuple is of the form:
+# (<the tract in list form>, <length of tract>, <list of tags in integer form>)
+# Each tuple refers to a tract in the Tractus tree that is shared by at least
+# two haplotypes. Shared tracts are easily picked out by observing the tags
+# at each node. 
+shared_tracts = []
+
+# tract_map is a list that maps a haplotype's index to a list
+# tract indices. Each index in the list of tract indices refers
+# to an element of the shared_tracts structure above.
+# Ie. tract_map[i] = a list of indices into shared_tracts that 
+# correspond to tracts that haplotype "i" shares with at least 
+# one other haplotype
+tract_map = [[] for x in range(num_haps)]
+
+def collect_tags(root):
+	# Traverse the tree given by root and populate
+	# shared_tracts and tract_map accordingly
+	# "untag" is a fn designed to convert root's tags to ints
+	# Returns a tuple: (<shared_tracts>, <tract_map>)
+	shared_tracts = []
+	tract_map = [[] for x in range(num_haps)]
+
+	def search_node(node):
+		# Searches a single node and updates shared_tracts
+		# and tract_map accordingly
+		all_tags = node.get_tags_below() + node.get_tags_on()
+		if len(all_tags) > 1:
+			untagged_list = map(untag, all_tags)
+			shared_tracts.append((node.tract_so_far, len(node.tract_so_far), untagged_list))
+			tract_ind = len(shared_tracts) # since this is the most recently added tract
+			# Populate tract_map accordingly
+			for hap in untagged_list:
+				tract_map[hap].append(tract_ind)
+			# Recursively search nodes at the end of each outgoing edge
+			for edge in node.edges:
+				search_node(edge.end_node)
+
+	# Skip the root node (since it does not refer to a tract)
+	# Begin by searching all of its edges
+	for edge in root.edges:
+		# Search each child node
+		search_node(edge.end_node)
+
+
+	# Output the populated data structures
+	return (shared_tracts, tract_map)
+
+
+
+# Run collect_tags on the root of the Tractus tree
+# Ie., perform depth-first traversal of the Tractus tree to 
+# populate shared_tracts and tag_map 
+(shared_tracts, tract_map) = collect_tags(root)
+
+# Calculate the average shared tract length
+num_shared_tracts = len(shared_tracts)
+tract_lens = [x[1] for x in shared_tracts]
+print num_shared_tracts
+print tract_lens
+print float(sum(tract_lens)) / float(num_shared_tracts)
+
+
+### Train using the Voting Theory Method ###
 
 
 
