@@ -184,7 +184,6 @@ def insert(root, suff, tag_val):
 			# No common prefix was found
 			return add_suff_to_root()
 
-
 def tag(hap_val):
 	# Create a unique tag given a hap_val
 	return "$" + str(hap_val) + "$"
@@ -232,7 +231,7 @@ hap_len = len(haps[0])
 # suffix tree construction algorithm.
 
 root = Node() # root of the tractus tree
-for i in [0,1,2]:#range(num_haps):
+for i in range(num_haps):
 	hap = haps[i] # get the i-th haplotype to be added to tree
 	tag_val =  tag(i) # generate a unique tag for the i-th haplotype
 	for j in range(hap_len):
