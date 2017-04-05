@@ -10,6 +10,7 @@
 
 import sys
 import numpy as np
+from collections import Counter
 
 
 ### Classes ###
@@ -307,8 +308,6 @@ def collect_tags(root):
 # Ie., perform depth-first traversal of the Tractus tree to 
 # populate shared_tracts and tag_map 
 (shared_tracts, tract_map) = collect_tags(root)
-for tract in shared_tracts:
-	print tract[0]
 
 # Function to calculate the average shared tract length
 def avg_tract_length(shared_tracts):
@@ -344,14 +343,20 @@ E = generate_exp_lvl_vec(exp_vals, K)
 # Take out every haplotpye individually and classify it / predict
 # its expression based on the voting theory approach.
 
-# def calculate_confidence(tract, hap_ind, E):
-# 	# Calculates the vote and confidence of this tract
-# 	# for the haplotype specified by hap_ind
-# 	# E[i] is the expression level of haplotype i
-# 	tract_tags = tract[2] # the tags associated with this tract
-# 	tract_tags.remove(hap_ind) # remove the hap we are trying to predict
-
-
+def calculate_confidence(tract, hap_ind, E, K):
+	# Calculates the vote and confidence of this tract
+	# for the haplotype specified by hap_ind
+	# E[i] is the expression level of haplotype i
+	tract_tags = tract[2] # the tags associated with this tract
+	tract_tags.remove(hap_ind) # remove the hap we are trying to predict
+	exp_lvls = [E[i] for i in tract_tags] # every index replaced by its level
+	# Use Python's Counter object to get the most common tag 
+	mode = Counter(exp_lvls).most_common(1)
+	(vote, num_occurences) = mode[0] # most common tag and how many times it appeared
+ 	tot_num_tags = len(exp_lvls)
+ 	winning_perc = float(num_occurences) / float(tot_num_tags)
+ 	confidence = (winning_perc - (1 / float(K))) / (float(K-1) / float(K))
+ 	return (vote, confidence)
 
 # predictions = [0 for x in range(num_haps)]
 # for i in range(num_haps):
@@ -362,18 +367,6 @@ E = generate_exp_lvl_vec(exp_vals, K)
 # 	for ind in tract_inds:
 # 		tract = shared_tracts[ind]
 # 		L = tract[1] # length of the tract
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
