@@ -2,7 +2,7 @@
 
 
 # Usage:  
-# >> python tractus_tree.py [name of input file, in hap_exp format]
+# >> python tractus_tree.py [name of input file, in hap_exp format] [k] [output file name]
 
 # 1) Simulates data based on input arguments 
 # 2) Constructs a tractus tree from the simlated haplotypes
@@ -11,7 +11,7 @@
 import sys
 import numpy as np
 from collections import Counter
-
+from copy import deepcopy
 
 ### Classes ###
 # Define a node in the suffix tree
@@ -202,10 +202,11 @@ def untag(tag_str):
 try:
 	file_name = sys.argv[1]
 	K = int(sys.argv[2])
+	output_file_name = sys.argv[3]
 	f = open(file_name, 'r')
 except:
 	print "ERROR: parsing command line arguments"
-	print "Usage: >> tract_tree.py [input_file_name] [k]"
+	print "Usage: >> tract_tree.py [input_file_name] [k] [output_file_name]"
 	print "k is the chosen number of expression classes"
 	sys.exit()
 
@@ -241,7 +242,7 @@ hap_len = len(haps[0])
 # suffix tree construction algorithm.
 
 root = Node() # root of the tractus tree
-for i in [0,1,3]:#range(num_haps):
+for i in range(num_haps):
 	hap = haps[i] # get the i-th haplotype to be added to tree
 	tag_val =  tag(i) # generate a unique tag for the i-th haplotype
 	for j in range(hap_len):
@@ -287,7 +288,7 @@ def collect_tags(root):
 		if len(all_tags) > 1:
 			untagged_list = map(untag, all_tags)
 			shared_tracts.append((node.tract_so_far, len(node.tract_so_far), untagged_list))
-			tract_ind = len(shared_tracts) # since this is the most recently added tract
+			tract_ind = len(shared_tracts) - 1 # since this is the most recently added tract
 			# Populate tract_map accordingly
 			for hap in untagged_list:
 				tract_map[hap].append(tract_ind)
@@ -343,7 +344,7 @@ E = generate_exp_lvl_vec(exp_vals, K)
 # Take out every haplotpye individually and classify it / predict
 # its expression based on the voting theory approach.
 
-def calculate_confidence(tract, hap_ind, E, K):
+def calculate_confidence(tract, hap_ind):
 	# Calculates the vote and confidence of this tract
 	# for the haplotype specified by hap_ind
 	# E[i] is the expression level of haplotype i
@@ -358,15 +359,34 @@ def calculate_confidence(tract, hap_ind, E, K):
  	confidence = (winning_perc - (1 / float(K))) / (float(K-1) / float(K))
  	return (vote, confidence)
 
-# predictions = [0 for x in range(num_haps)]
-# for i in range(num_haps):
-# 	# Form a prediction of the expression level of haplotype "i"
-# 	hap = haps[i]
-# 	score_vector = [0 for k in range(K)] # will store scores for each class
-# 	tract_inds = tract_map[i]
-# 	for ind in tract_inds:
-# 		tract = shared_tracts[ind]
-# 		L = tract[1] # length of the tract
+predictions = [0 for x in range(num_haps)]
+for i in range(num_haps):
+	# Form a prediction of the expression level of haplotype "i"
+	hap = haps[i]
+	score_vector = [0 for k in range(K)] # will store scores for each class
+	tract_inds = tract_map[i]
+	for ind in tract_inds:
+		tract = shared_tracts[ind]
+		# Technically we want to use a length ratio, but the result is the same
+		# if the absolute length is used
+		L = tract[1] # length of the tract 
+		(vote, confidence) = calculate_confidence(deepcopy(tract), i)
+		score_vector[vote] += (confidence*L)
+	# Store the prediction (the index of the maximum score in score_vector)
+	predictions[i] = score_vector.index(max(score_vector))
+
+### Output Results to File ###
+f = open(output_file_name, 'w')
+# Write the header line
+header_string = "Hap Index \tExpression Value \tExpression Level \tPredicted Expression Level \n"
+f.write(header_string)
+# Write results for each haplotype to the file, line by line
+for i in range(len(haps)):
+	data = "%d \t %f \t %d \t %d \n" % (i, exp_vals[i], E[i], predictions[i])
+	f.write(data)
+# Close the output file
+f.close()
+
 
 
 
