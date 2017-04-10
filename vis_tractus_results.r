@@ -13,9 +13,10 @@ g <- ggplot(TractusResults, aes(x=Expression.Level, y=Expression.Value, color=Pr
 #    geom_jitter(position=position_dodge(0.8))
 
 # Set the title
-g <- g + ggtitle(expression(atop("Random Expression", italic(n)~"= 100   "~italic(p) ~ "=100")))
-g <- g + theme(plot.title = element_text(size=15, face="bold", 
-                                  margin = margin(10, 0, 10, 0)))
+g <- g + labs(title = "Random Expression", subtitle=expression(italic(n)~"= 100   "~italic(p) ~ "= 100"))
+g <- g + theme(plot.title = element_text(size=15, hjust = 0.5, face="bold", 
+                                  margin = margin(10, 0, 10, 0)),
+               plot.subtitle = element_text(size = 12, hjust = 0.5))
 
 # Set the axes
 g <- g+labs(x="Expression Level", y= "Expression Value (RPKM)")
