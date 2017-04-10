@@ -378,11 +378,11 @@ for i in range(num_haps):
 ### Output Results to File ###
 f = open(output_file_name, 'w')
 # Write the header line
-header_string = "Hap Index \tExpression Value \tExpression Level \tPredicted Expression Level \n"
+header_string = "Hap Index \tExpression Value \tExpression Level \tPrediction \n"
 f.write(header_string)
 # Write results for each haplotype to the file, line by line
 for i in range(len(haps)):
-	data = "%d \t %f \t %d \t %d \n" % (i, exp_vals[i], E[i], predictions[i])
+	data = "%d \t %f \t %d \t Level %d \n" % (i, exp_vals[i], E[i], predictions[i])
 	f.write(data)
 # Close the output file
 f.close()
