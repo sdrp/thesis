@@ -1,6 +1,6 @@
 # Visualize Tractus Results
 library(ggplot2)
-TractusResults <- read.table(file = 'scratch_results', sep = '\t', header = TRUE)
+TractusResults <- read.table(file = 'real_output_no_outlier.tsv', sep = '\t', header = TRUE)
 TractusResults$Expression.Level <- as.factor(TractusResults$Expression.Level)
 TractusResults$Prediction <- as.factor(TractusResults$Prediction)
 
@@ -9,7 +9,7 @@ g <- ggplot(TractusResults, aes(x=Expression.Level, y=Expression.Value, color=Pr
     geom_jitter(position=position_jitter(0.2))
 
 # Set the title
-g <- g + labs(title = "Expression Levels in Model: 7", subtitle=expression(atop("False Classification Proportion = 0.62", italic(n)~"= 150   "~italic(p) ~ "= 100")))
+g <- g + labs(title = "Real Data: MUC6 Expression", subtitle=expression(atop("False Classification Proportion = 0.36", italic(n)~"= 14   "~italic(p) ~ "= 57")))
 g <- g + theme(plot.title = element_text(size=15, hjust = 0.5, face="bold", 
                                   margin = margin(10, 0, 10, 0)),
                plot.subtitle = element_text(size = 10, hjust = 0.5))

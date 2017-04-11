@@ -334,6 +334,20 @@ def generate_exp_lvl_vec(exp_vec, K):
 				break # exit loop
 	return lvl_vec
 
+# A variant on the above, to correct for outliers
+def generate_exp_lvl_vec2(exp_vec, K):
+	# Outputs a list of size exp_vec where each value
+	# has been converted to a value in [1,..., K]
+	sorted_indices = [i[0] for i in sorted(enumerate(exp_vec), key=lambda x:x[1])]
+	lvl_vec = [K-1 for x in range(len(exp_vec))]
+	cutoffs = [i*int(float(len(exp_vec) / K)) for i in range(K)]
+	# for i in range(len(exp_vec)):
+	# 	for k in range(K):
+	# 		if sorted_indices[i]
+
+	return lvl_vec
+
+
 # Generate the expression level vector
 # E[i] = the expression level of haplotype i
 # Values in E are integers [0,...,K-1]
