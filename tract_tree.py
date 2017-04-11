@@ -341,17 +341,16 @@ def generate_exp_lvl_vec2(exp_vec, K):
 	sorted_indices = [i[0] for i in sorted(enumerate(exp_vec), key=lambda x:x[1])]
 	lvl_vec = [K-1 for x in range(len(exp_vec))]
 	cutoffs = [i*int(float(len(exp_vec) / K)) for i in range(K)]
-	# for i in range(len(exp_vec)):
-	# 	for k in range(K):
-	# 		if sorted_indices[i]
-
+	for k in range(len(cutoffs) - 1):
+		for ind in range(cutoffs[k],cutoffs[k+1]):
+			lvl_vec[sorted_indices[ind]] = k
 	return lvl_vec
 
 
 # Generate the expression level vector
 # E[i] = the expression level of haplotype i
 # Values in E are integers [0,...,K-1]
-E = generate_exp_lvl_vec(exp_vals, K)
+E = generate_exp_lvl_vec2(exp_vals, K)
 
 
 ### N-fold Cross Validation Using the Voting Theory Method ###
