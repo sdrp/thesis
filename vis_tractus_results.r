@@ -1,6 +1,6 @@
 # Visualize Tractus Results
 library(ggplot2)
-TractusResults <- read.table(file = 'random_output.tsv', sep = '\t', header = TRUE)
+TractusResults <- read.table(file = 'scratch_results', sep = '\t', header = TRUE)
 TractusResults$Expression.Level <- as.factor(TractusResults$Expression.Level)
 TractusResults$Prediction <- as.factor(TractusResults$Prediction)
 
@@ -8,12 +8,8 @@ TractusResults$Prediction <- as.factor(TractusResults$Prediction)
 g <- ggplot(TractusResults, aes(x=Expression.Level, y=Expression.Value, color=Prediction)) + 
     geom_jitter(position=position_jitter(0.2))
 
-# Set the plot mode to "dodge" - clear
-#p <- ggplot(TractusResults, aes(x=Expression.Level, y=Expression.Value, color=Predicted.Expression.Level)) + 
-#    geom_jitter(position=position_dodge(0.8))
-
 # Set the title
-g <- g + labs(title = "Simulated Random Expression", subtitle=expression(atop("False Classification Rate = ", italic(n)~"= 100   "~italic(p) ~ "= 100")))
+g <- g + labs(title = "Expression Levels in Model: 7", subtitle=expression(atop("False Classification Proportion = 0.62", italic(n)~"= 150   "~italic(p) ~ "= 100")))
 g <- g + theme(plot.title = element_text(size=15, hjust = 0.5, face="bold", 
                                   margin = margin(10, 0, 10, 0)),
                plot.subtitle = element_text(size = 10, hjust = 0.5))

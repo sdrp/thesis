@@ -3,7 +3,7 @@
 
 
 # Input Format:
-# >> python gs_data.py [# haplotypes] [length of haplotype] [expression_fn] [noise] [name of output file]
+# >> python gs_data.py [# haplotypes] [length of haplotype] [expression_fn] [k] [name of output file] [noise]
 
 # Options for [expression_fn]
 # rand: randomly generated expression values (ie. no pattern-specific expression)
@@ -24,8 +24,12 @@ try:
 	num_haps = int(sys.argv[1])
 	hap_len = int(sys.argv[2])
 	exp_fn_name = sys.argv[3]
-	noise = float(sys.argv[4])
+	K = int(sys.argv[4])
 	output_file_path = sys.argv[5]
+	try:
+		noise = float(sys.argv[6])
+	except:
+		noise = False
 except:
 	print "ERROR: improper input argument format"
 	print "Correct Format:"
@@ -50,14 +54,15 @@ def gaussian_fn(input_hap, noise):
 
 # Choose the specified expression function
 tract_dependent = False
+tract_dependent_unscaled = False
 if exp_fn_name == 'rand':
 	exp_fn = random_fn
 elif exp_fn_name == 'sanity_check':
 	exp_fn = sanity_check_fn
 elif exp_fn_name == 'tract_dependent':
 	tract_dependent = True
-elif exp_fn_name == 'snp_dependent':
-	exp_fn = snp_fn
+elif exp_fn_name == 'tract_dependent_unscaled':
+	tract_dependent_unscaled = True
 elif exp_fn_name == 'gaussian':
 	exp_fn = gaussian_fn
 else:
@@ -71,12 +76,36 @@ exp_vals = [0 for x in range(num_haps)]
 
 if tract_dependent:
 	# Generate the haps to have tract dependent expression
-	# Define a number of classes we want to emulate
-	K = 5
+	# K is the number of classes we will emulate
 	# Determine a tract-associated expression boost
-	tract_val = 10
+	tract_val = float(10) 
 	# Next determine a tract length
 	tract_len = int((hap_len * 0.67) / K) # arbitrary proportion
+	# Get tract start points
+	tract_starts = [k*(hap_len/K) for k in range(K)]
+	# Get generate the tract signatures (ie. the tracts themselves)
+	tracts = [[round(random.random()) for i in range(tract_len)] for k in range(K)]
+	# Now inject the tracts into the haplotypes
+	for i in range(num_haps):
+		# Pick a random expression level for this hap 
+		exp_level = random.randint(0, K-1)
+		# Place modify the hap to have the tract
+		hap = haps[i]
+		hap[tract_starts[exp_level]:tract_starts[exp_level]+tract_len] = tracts[exp_level]
+		# Generate an expression value
+		exp_vals[i] = (random.random()*10) + (exp_level*tract_val) + noise*float(10)*random.uniform(-1, 1)
+	# Write the tracts and expression to file
+	for i in range(num_haps):
+		hap = haps[i]
+		hap_str = ''.join(str(x)[0] for x in hap)
+		f.write(hap_str + '\t' + str(exp_vals[i]) + '\n')
+elif tract_dependent_unscaled:
+	# Generate the haps to have tract dependent expression
+	# K is the number of classes we will emulate
+	# Determine a tract-associated expression boost
+	tract_val = 7.5
+	# Next determine a tract length
+	tract_len = 10 # arbitrary proportion
 	# Get tract start points
 	tract_starts = [k*(hap_len/K) for k in range(K)]
 	# Get generate the tract signatures (ie. the tracts themselves)
@@ -95,7 +124,6 @@ if tract_dependent:
 		hap = haps[i]
 		hap_str = ''.join(str(x)[0] for x in hap)
 		f.write(hap_str + '\t' + str(exp_vals[i]) + '\n')
-
 else:
 	# Write to the output file
 	for i in range(num_haps):

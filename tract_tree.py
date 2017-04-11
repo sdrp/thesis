@@ -324,7 +324,7 @@ def generate_exp_lvl_vec(exp_vec, K):
 	lvl_size = float(max(exp_vec) - min(exp_vec)) / float(K)
 	min_val = float(min(exp_vec))
 	# Initialize vector of level assignment
-	lvl_vec = [0 for x in range(len(exp_vec))]
+	lvl_vec = [K-1 for x in range(len(exp_vec))]
 	# Assign each value in exp_vec to a level and store it in lvl_vec
 	for i in range(len(exp_vec)):
 		exp_val = exp_vec[i]
@@ -374,6 +374,18 @@ for i in range(num_haps):
 		score_vector[vote] += (confidence*L)
 	# Store the prediction (the index of the maximum score in score_vector)
 	predictions[i] = score_vector.index(max(score_vector))
+
+
+### Determine the false classification rate
+# Ie. the number of individuals whose expression
+# class was wrongly predicted 
+diff_vec = [predictions[i] - E[i] for i in range(len(haps))]
+num_false_predictions = 0
+for i in range(len(haps)):
+	if diff_vec[i] != 0:
+		num_false_predictions = num_false_predictions + 1
+false_prediction_rate = float(num_false_predictions) / float(num_haps)
+print "%f" % false_prediction_rate
 
 ### Output Results to File ###
 f = open(output_file_name, 'w')
